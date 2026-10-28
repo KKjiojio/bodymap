@@ -1,0 +1,3 @@
+Use `bodymap_questionnaire_revised.html` for the bilingual music-and-stories questionnaire and `sated_questionnaire/sated_questionnaire.html` for the standalone social-touch video questionnaire. Run locally with a web server such as VS Code Live Server; opening the HTML file directly may prevent media playback in some browsers.
+
+The GitHub Pages publication is built from `docs/`. It contains only the active questionnaires and their required assets. Participant responses are sent to a Google Apps Script endpoint and stored as one JSON record per row in the linked Google Sheet; participants may also download a local JSON backup. Configure the Web App `/exec` address in `RESPONSE_ENDPOINT` in the source pages before publishing.

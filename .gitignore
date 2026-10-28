@@ -1,0 +1,12 @@
+.DS_Store
+.build/
+archive/
+node_modules/
+deploy/node_modules
+/bodymap_questionnaire_revised.html
+/bodymap_questionnaire_steps.html
+/index.html
+/front.jpg
+/back.jpg
+/stimuli/
+/sated_questionnaire/
