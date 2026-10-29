@@ -80,19 +80,19 @@ async function playRepetition(){
  try{await video.play();repeatRunning=true;
   if(!trial.videoStartedAt){trial.videoStartedAt=now();playbackStartClock=performance.now();log('videoStarted');}
   if(!repetitionStartedAt){repetitionStartedAt=now();log('videoRepetitionStarted',{repetition:trial.repetitionsCompleted+1});}else log('videoResumed');
-  setOnsetEnabled(trial.initialSide===null);updateRepeatStatus();$('videoStatus').textContent='視聴中 / Playing';
+  setOnsetEnabled(true);updateRepeatStatus();$('videoStatus').textContent='視聴中 / Playing';
  }catch(error){repeatRunning=false;setOnsetEnabled(false);$('videoPlay').disabled=false;$('videoError').textContent='再生できませんでした。もう一度お試しください。 / Playback failed. Please try again.';$('videoError').classList.remove('hidden');log('videoPlayFailed',{message:String(error.message)});}
 }
 $('videoPlay').onclick=()=>{if(page!=='listen'||trial.videoCompleted||$('videoPlay').disabled)return;return playRepetition();};
 function updateVideoNext(){$('videoNext').disabled=!trial.videoCompleted||trial.initialSensationReported===null;}
 document.querySelectorAll('input[name=initialSide]').forEach(el=>el.addEventListener('change',()=>{
- if(page!=='listen'||trial.initialSensationReported!==null)return;
+ if(page!=='listen')return;
  const after=trial.videoCompleted;
  if(!after&&(!repeatRunning||video.paused||video.ended||el.value==='none'))return;
  trial.initialSideAnsweredAt=now();trial.initialSideSelectionPhase=after?'afterPlayback':'duringPlayback';
  trial.initialSide=el.value==='none'?null:el.value;trial.initialSensationReported=el.value!=='none';
  if(!after){trial.onsetVideoSeconds=at();trial.onsetRepetition=trial.repetitionsCompleted+1;trial.onsetSeconds=Math.round((trial.totalPlayedSeconds+video.currentTime)*1000)/1000;trial.onsetAt=trial.initialSideAnsweredAt;trial.onsetElapsedSeconds=Math.round(performance.now()-playbackStartClock)/1000;}
- log('initialSideSelected',{value:el.value,phase:trial.initialSideSelectionPhase,repetition:trial.onsetRepetition,onsetSeconds:trial.onsetSeconds});setOnsetEnabled(false);updateVideoNext();
+ log('initialSideSelected',{value:el.value,phase:trial.initialSideSelectionPhase,repetition:trial.onsetRepetition,onsetSeconds:trial.onsetSeconds});setOnsetEnabled(true);updateVideoNext();
  $('onsetStatus').innerHTML=after?'記録しました。「次へ」を押してください。<span class="en">Recorded. Press Next to continue.</span>':'記録しました。引き続き、ご自身の身体感覚の変化に注意してください。<span class="en">Recorded. Continue attending to changes in your own bodily sensations.</span>';
 }));
 $('videoNext').onclick=()=>{if(page!=='listen'||!trial.videoCompleted||trial.initialSensationReported===null)return;log('videoPageCompleted');show('map');if(trial.initialSensationReported===false){$('noBodySensation').checked=true;$('noBodySensation').onchange();}};
@@ -112,7 +112,7 @@ video.addEventListener('ended',async()=>{
  log('videoRepetitionEnded',{repetition:trial.repetitionsCompleted});repetitionStartedAt=null;
  if(trial.repetitionsCompleted<REPEAT_COUNT){video.currentTime=0;updateRepeatStatus();await playRepetition();return;}
  trial.videoEndedAt=endedAt;trial.videoDurationSeconds=video.duration;trial.videoCompleted=true;
- $('videoPlay').disabled=true;log('videoEnded');$('videoStatus').textContent='5回の再生が終了しました。 / All five plays are complete.';$('noInitialSensationOption').classList.toggle('hidden',trial.initialSensationReported!==null);setOnsetEnabled(trial.initialSensationReported===null);updateVideoNext();
+ $('videoPlay').disabled=true;log('videoEnded');$('videoStatus').textContent='5回の再生が終了しました。 / All five plays are complete.';$('noInitialSensationOption').classList.remove('hidden');setOnsetEnabled(true);updateVideoNext();
 });
 const COLORS=['#153eac','#2365c5','#3985df','#75b8eb','#b6dff4','#eeeeee','#f6d2c8','#f5a08d','#ed6652','#d83a37','#aa1529'];
 function bg(ctx,side){ctx.clearRect(0,0,360,480);ctx.fillStyle='#fff';ctx.fillRect(0,0,360,480);const im=images[side];if(im.complete&&im.naturalWidth){const scale=Math.min(360/im.naturalWidth,480/im.naturalHeight),w=im.naturalWidth*scale,h=im.naturalHeight*scale;ctx.drawImage(im,(360-w)/2,(480-h)/2,w,h);}}
