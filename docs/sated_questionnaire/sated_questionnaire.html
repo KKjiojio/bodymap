@@ -44,7 +44,7 @@
 <section class="card hidden" id="completePage"><h2>実験が終了しました <span class="en">Study complete</span></h2><p>ご協力ありがとうございました。回答は研究用データベースに送信されます。<span class="en">Thank you. Your response will be sent to the study database.</span></p><p class="helper" id="submissionStatus" role="status">送信を準備しています。<span class="en">Preparing your submission.</span></p><p class="helper">念のため、回答データを手元にも保存できます。<span class="en">You can also save a local backup copy of your response.</span></p><button class="main" id="export">JSONデータを保存 / Download JSON</button></section>
 </main><script>
 'use strict';
-const STIMULI=[5,10,18,22,35,39].map(id=>({id,originalFilename:`${id}.avi`,filename:`${id}.mp4`,src:`stimuli/${id}.mp4`}));
+const STIMULI=[5,6,28,36,20].map(id=>({id,originalFilename:`${id}.avi`,filename:`${id}.mp4`,src:`stimuli/${id}.mp4`}));
 const REPEAT_COUNT=5;
 // Apps Script Web App /exec URL. Filled in immediately before publication; it is intentionally public.
 const RESPONSE_ENDPOINT='https://script.google.com/macros/s/AKfycbwg8TrdQaHVcgUHQqYRvC7hpANGAgoL1PEHgPckttxDrbjzEtQBza9I7KtQIwDe4pwDtw/exec';
