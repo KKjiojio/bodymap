@@ -95,8 +95,8 @@ function showSection(section){const info=sectionInstructions[section];$('section
 function beginStimulus(){if(isStory())startReading();}
 function enterStimulus(){show('listen');if(!stimulusInstructionsAcknowledged){$('stimulusInstructionModal').classList.remove('hidden');$('acknowledgeStimulusInstructions').focus();return;}beginStimulus();}
 
-// Reproducible randomized blocks: every pair of consecutive numeric IDs has
-// opposite starting types; every block of eight places each stimulus once at each position.
+// Reproducible randomized blocks.  Each music stimulus is immediately followed by
+// its emotion-matched scenario; only the order of the four matched pairs varies.
 function orderSeed(text){let value=2166136261;for(const c of text){value^=c.codePointAt(0);value=Math.imul(value,16777619);}return value>>>0||1;}
 function orderRandom(seed){let value=seed;return()=>{value^=value<<13;value^=value>>>17;value^=value<<5;return(value>>>0)/4294967296;};}
 function orderShuffle(items,random){const out=[...items];for(let i=out.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[out[i],out[j]]=[out[j],out[i]];}return out;}
@@ -109,17 +109,10 @@ function assignOrder(){
   seed=orderSeed('sectionA-alternating-v2:'+block);allocation='consecutive numeric IDs starting at 1';
  }else if(id){seed=orderSeed('sectionA-id:'+id);slot=seed%8;allocation='ID-hash fallback; balance not guaranteed';}
  else{const n=new Uint32Array(2);crypto.getRandomValues(n);seed=n[0]||1;slot=n[1]%8;allocation='random fallback; balance not guaranteed';}
- const random=orderRandom(seed),musicGroups=orderShuffle([0,1,2,3],random);
- // Check the wrap-around edge too, so all rotations remain valid.
- const validStories=permutations([0,1,2,3]).filter(groups=>groups.every((g,i)=>g!==musicGroups[i]&&g!==musicGroups[(i+1)%4]));
- const storyGroups=validStories[Math.floor(random()*validStories.length)];
- const cycle=musicGroups.flatMap((g,i)=>[SECTION_A_PAIRS[g][0],SECTION_A_PAIRS[storyGroups[i]][1]]);
- const musicRotations=orderShuffle([0,2,4,6],random),storyRotations=orderShuffle([1,3,5,7],random),musicFirstOnEvenSlot=random()<0.5;
- const startsWithMusic=(slot%2===0)===musicFirstOnEvenSlot;
- const index=(startsWithMusic?musicRotations:storyRotations)[Math.floor(slot/2)];
- const orderA=cycle.slice(index).concat(cycle.slice(0,index));
+ const random=orderRandom(seed),pairOrder=orderShuffle(SECTION_A_PAIRS,random);
+ const orderA=pairOrder.flat();
  STIMULI=orderA.concat(shuffle(VIDEO_STIMULI).map(v=>v.src));
- orderAssignment={method:'strict alternation; randomized valid cycle and counterbalanced rotations in blocks of eight',index,seed,block,slot,allocation,startingType:startsWithMusic?'music':'story',sectionAOrder:orderA.map((stimulus,i)=>({position:i+1,stimulus,stimulus_type:STORIES[stimulus]?'story':'music',stimulus_id:STORIES[stimulus]?.id||stimulus.split('/').pop().replace(/\.(wav|mp3)$/,'')})),sectionOrder:['A','B'],sectionBMethod:'Fisher-Yates shuffle',participantId:id||null,order:[...STIMULI]};
+ orderAssignment={method:'randomized order of fixed emotion-matched music–scenario pairs',seed,block,slot,allocation,startingType:'music',sectionAOrder:orderA.map((stimulus,i)=>({position:i+1,stimulus,stimulus_type:STORIES[stimulus]?'story':'music',stimulus_id:STORIES[stimulus]?.id||stimulus.split('/').pop().replace(/\.(wav|mp3)$/,'')})),sectionOrder:['A','B'],sectionBMethod:'Fisher-Yates shuffle',participantId:id||null,order:[...STIMULI]};
  $('pid').disabled=true;
 }
 const isStory=()=>!!STORIES[trial?.stimulus];
