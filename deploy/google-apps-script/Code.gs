@@ -11,6 +11,14 @@ function receivedAtJst() {
 function doPost(event) {
   try {
     const request = JSON.parse(event.postData.contents || '{}');
+    if (request.kind === 'images') {
+      const submissionId = String(request.submissionId || '');
+      const participantId = String(request.participantId || 'anonymous');
+      const renderedImages = Array.isArray(request.renderedImages) ? request.renderedImages : [];
+      if (!submissionId || !renderedImages.length) return jsonResponse({ ok: false, error: 'Missing image payload.' }, 400);
+      saveRenderedImages(renderedImages, participantId, submissionId);
+      return jsonResponse({ ok: true, submissionId: submissionId, images: renderedImages.length });
+    }
     const payload = request.payload;
     if (!payload || typeof payload !== 'object') {
       return jsonResponse({ ok: false, error: 'Missing payload.' }, 400);
@@ -60,6 +68,9 @@ function saveRenderedImages(renderedImages, participantId, submissionId) {
 }
 
 function appendImage(sheetName, participantId, submissionId, trial, stimulus, imageType, dataUrl) {
+  const imageKey = ['image', submissionId, trial, imageType].join(':');
+  const properties = PropertiesService.getScriptProperties();
+  if (properties.getProperty(imageKey)) return;
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
   let sheet = spreadsheet.getSheetByName(sheetName);
   if (!sheet) {
@@ -69,10 +80,11 @@ function appendImage(sheetName, participantId, submissionId, trial, stimulus, im
   }
   const row = sheet.getLastRow() + 1;
   sheet.getRange(row, 1, 1, 5).setValues([[participantId, submissionId, trial, stimulus, imageType]]);
-  const blob = Utilities.newBlob(Utilities.base64Decode(dataUrl.replace(/^data:image\/png;base64,/, '')), 'image/png', participantId + '_' + trial + '_' + imageType.replace(/\s+/g, '_') + '.png');
+  const blob = Utilities.newBlob(Utilities.base64Decode(dataUrl.substring(dataUrl.indexOf(',') + 1)), 'image/png', participantId + '_' + trial + '_' + imageType.split(' ').join('_') + '.png');
   const image = sheet.insertImage(blob, 6, row);
   image.setWidth(540).setHeight(385);
   sheet.setRowHeight(row, 395);
+  properties.setProperty(imageKey, 'saved');
 }
 
 function doGet() {
