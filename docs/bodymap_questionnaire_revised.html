@@ -219,19 +219,18 @@ function skipToNextStimulus(){
 }
 $('play').onclick=async()=>{if(isStory()||isVideo()||audioPlaying||$('play').disabled)return;$('play').disabled=true;$('playbackError').classList.add('hidden');try{await audio.play();audioPlaying=true;setSideEnabled(true);$('play').textContent='再生中 / Playing';log('audioStarted');}catch(e){$('play').disabled=false;setSideEnabled(false);$('playbackError').textContent='音楽を再生できませんでした。再生ボタンを押して、もう一度お試しください。 / Audio could not be played. Press Play to try again.';$('playbackError').classList.remove('hidden');}};
 document.querySelectorAll('input[name=side]').forEach(el=>el.addEventListener('change',()=>{
-  if(page!=='listen'||isVideo()||trial.initialSensationReported!==null)return;
+  if(page!=='listen'||isVideo())return;
   if(isStory()&&(!audioPlaying||audioEnded))return;
   if(!isStory()&&!audioPlaying&&!audioEnded)return;
   if(el.value==='none'){
-   trial.initialSide='none';trial.initialSensationReported=false;trial.noSensation=true;log('noBodilySensationSelected',{method:'directSideSelection'});setSideEnabled(false);
+   trial.initialSide='none';trial.initialSensationReported=false;trial.noSensation=true;log('noBodilySensationSelected',{method:'directSideSelection'});
    if(isStory()||audioEnded)skipToNextStimulus();else $('sideStatus').innerHTML='記録しました。音楽が終わるまでお待ちください。<span class="en">Recorded. Please wait until the music ends.</span>';
    return;
   }
   trial.onsetSeconds=isStory()?readingSeconds():at();trial.initialSide=el.value;trial.noSensation=false;trial.initialSensationReported=true;
   log('firstBodilyChange',{value:el.value,method:'directSideSelection'});
   log('initialSideSelected',{value:el.value});
-  setSideEnabled(false);
-  $('sideStatus').innerHTML='記録しました。引き続き、身体感覚の変化に注意してください。<span class="en">Recorded. Continue paying attention to changes in your bodily sensations.</span>';
+  $('sideStatus').innerHTML='記録しました。再生中は選択を変更できます。引き続き、身体感覚の変化に注意してください。<span class="en">Recorded. You may change your selection while playback continues. Continue paying attention to changes in your bodily sensations.</span>';
   if(!isStory()&&audioEnded)openMap();
 }));
 function openMap(){if(['map','survey','complete'].includes(page))return;if(!isVideo())trial.initialSensationReported=trial.initialSide!==null;log(isVideo()?'postVideoMapOpened':isStory()?'postStoryMapOpened':'postMusicMapOpened');show('map');}
@@ -256,7 +255,9 @@ const intensityOptions=[['frontIncrease','前側が強くなった / Front incre
 function addChecks(id,options){$(id).innerHTML=options.map(([v,t])=>`<label class="check"><input type="checkbox" value="${v}"> ${t}</label>`).join('');}
 $('sideTrendChoices').innerHTML=sideTrendOptions.map(([v,t])=>`<label class="radio"><input type="radio" name="sideTrend" value="${v}"> ${t}</label>`).join('');addChecks('frontDirectionChoices',directionOptions);addChecks('backDirectionChoices',directionOptions);addChecks('intensityChoices',intensityOptions);
 for(const k of ['spatial','intensity'])document.querySelectorAll(`input[name=${k}]`).forEach(x=>x.onchange=()=>{const selected=picked(k);$(k+'Detail').classList.toggle('hidden',selected!=='yes');if(k==='spatial'&&selected==='yes')drawPaths();});
+for(const key of ['valence','arousal']){const slider=$(key);slider.step='0.1';slider.addEventListener('input',()=>{if(page!=='survey'||isVideo())return;trial[key]=Number(slider.value);slider.classList.remove('unanswered');slider.setAttribute('aria-valuetext',String(slider.value));$(key+'Value').textContent=String(slider.value);});}
 document.querySelectorAll('input[name=pathPossible]').forEach(el=>el.addEventListener('change',()=>{$('pathEditor').classList.toggle('hidden',picked('pathPossible')!=='yes');if(picked('pathPossible')==='yes')drawPaths();}));
+const submitSectionAWithContinuousAffect=$('surveyNext').onclick;$('surveyNext').onclick=()=>{const integerCheck=Number.isInteger;Number.isInteger=value=>integerCheck(value)||(typeof value==='number'&&Number.isFinite(value));try{submitSectionAWithContinuousAffect();}finally{Number.isInteger=integerCheck;}};
 function drawPaths(){
   $('pathDone').disabled=trial.path.length===0;
   $('pathWorkspace').classList.toggle('hidden',trial.pathCompletedAt!==null);

@@ -139,7 +139,9 @@ const intensityOptions=[['frontIncrease','前側が強くなった / Front incre
 function addChecks(id,options){$(id).innerHTML=options.map(([v,t])=>`<label class="check"><input type="checkbox" value="${v}"> ${t}</label>`).join('');}
 $('sideTrendChoices').innerHTML=sideTrendOptions.map(([v,t])=>`<label class="radio"><input type="radio" name="sideTrend" value="${v}"> ${t}</label>`).join('');addChecks('frontDirectionChoices',directionOptions);addChecks('backDirectionChoices',directionOptions);addChecks('intensityChoices',intensityOptions);
 for(const k of ['spatial','intensity'])document.querySelectorAll(`input[name=${k}]`).forEach(x=>x.onchange=()=>{const selected=picked(k);$(k+'Detail').classList.toggle('hidden',selected!=='yes');if(k==='spatial'&&selected==='yes')drawPaths();});
+for(const key of ['valence','arousal'])$(key).step='0.1';
 document.querySelectorAll('input[name=pathPossible]').forEach(el=>el.addEventListener('change',()=>{$('pathEditor').classList.toggle('hidden',picked('pathPossible')!=='yes');if(picked('pathPossible')==='yes')drawPaths();}));
+const submitSectionBWithContinuousAffect=$('surveyNext').onclick;$('surveyNext').onclick=()=>{const integerCheck=Number.isInteger;Number.isInteger=value=>integerCheck(value)||(typeof value==='number'&&Number.isFinite(value));try{submitSectionBWithContinuousAffect();}finally{Number.isInteger=integerCheck;}};
 function drawPaths(){
   $('pathDone').disabled=trial.path.length===0;
   $('pathWorkspace').classList.toggle('hidden',trial.pathCompletedAt!==null);
