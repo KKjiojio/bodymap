@@ -138,7 +138,7 @@ const TARGET_EMOTIONS={
 };
 const COLORS=['#153eac','#2365c5','#3985df','#75b8eb','#b6dff4','#eeeeee','#f6d2c8','#f5a08d','#ed6652','#d83a37','#aa1529'];
 // Apps Script Web App /exec URL. Filled in immediately before publication; it is intentionally public.
-const RESPONSE_ENDPOINT='https://script.google.com/macros/s/AKfycbxnEWBRwGSXf_r5L2vo0hqbGlzrKgfU_eoh2RYxEvS1ZwejLIOdhY4UQr0yH1Q4uyB6GQ/exec';
+const RESPONSE_ENDPOINT='https://script.google.com/macros/s/AKfycbwg8TrdQaHVcgUHQqYRvC7hpANGAgoL1PEHgPckttxDrbjzEtQBza9I7KtQIwDe4pwDtw/exec';
 const $=id=>document.getElementById(id),audio=$('audio'),video=$('touchVideo');
 const retrySectionASubmission=document.createElement('button');retrySectionASubmission.id='retrySectionASubmission';retrySectionASubmission.className='main hidden';retrySectionASubmission.type='button';retrySectionASubmission.textContent='送信を再試行 / Retry submission';$('export').before(retrySectionASubmission);retrySectionASubmission.onclick=()=>finishSectionA();
 $('emotionRatings').querySelector('p').innerHTML='刺激を体験したときの、ご自身の実際の気分を評価してください。<span class="en">Please rate how you actually felt while experiencing the stimulus, rather than the emotion expressed by the stimulus.</span>';
