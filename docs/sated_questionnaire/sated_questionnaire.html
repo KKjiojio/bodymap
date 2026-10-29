@@ -195,6 +195,13 @@ document.querySelectorAll('input[name=pathPossible]').forEach(el=>el.addEventLis
 document.head.insertAdjacentHTML('beforeend','<style>.path-instructions{font-size:15px;line-height:1.7;color:#1d3e60;background:#eef5fb;border:1px solid #c8d9e9;border-left:4px solid #3d6585;border-radius:8px;padding:13px 15px;margin:14px 0}.path-instructions .en{font-size:14px;color:#405e7a}#pathCount{display:none}</style>');$('pathWorkspace').querySelector('.helper').classList.add('path-instructions');
 const validateContinuousBAffect=$('surveyNext').onclick;$('surveyNext').onclick=()=>{const integerCheck=Number.isInteger;Number.isInteger=value=>integerCheck(value)||(typeof value==='number'&&Number.isFinite(value));try{validateContinuousBAffect();}finally{Number.isInteger=integerCheck;}};
 $('export').onclick=()=>downloadResult(buildResult());
+// Section A is queued in IndexedDB before this page opens.  Deliver queued records
+// without awaiting them in the participant flow, and retain any failed record for a
+// later retry on the same study site.
+const SECTION_A_QUEUE_DB='bodymap-submission-queue-v1',SECTION_A_QUEUE_STORE='pending';
+function openSectionAQueue(){return new Promise((resolve,reject)=>{const request=indexedDB.open(SECTION_A_QUEUE_DB,1);request.onupgradeneeded=()=>request.result.createObjectStore(SECTION_A_QUEUE_STORE,{keyPath:'submissionId'});request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});}
+async function deliverQueuedSectionA(){if(!RESPONSE_ENDPOINT||!window.indexedDB)return;let db;try{db=await openSectionAQueue();const entries=await new Promise((resolve,reject)=>{const request=db.transaction(SECTION_A_QUEUE_STORE,'readonly').objectStore(SECTION_A_QUEUE_STORE).getAll();request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});for(const entry of entries){try{await fetch(entry.endpoint||RESPONSE_ENDPOINT,{method:'POST',mode:'no-cors',cache:'no-store',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({questionnaire:entry.questionnaire,sourceUrl:entry.sourceUrl,payload:entry.payload})});await new Promise((resolve,reject)=>{const transaction=db.transaction(SECTION_A_QUEUE_STORE,'readwrite');transaction.objectStore(SECTION_A_QUEUE_STORE).delete(entry.submissionId);transaction.oncomplete=resolve;transaction.onerror=()=>reject(transaction.error);});}catch(error){console.warn('Queued Section A upload will retry later.',error);}}}catch(error){console.warn('Unable to deliver queued Section A upload.',error);}finally{db?.close();}}
+void deliverQueuedSectionA();
 for(const im of Object.values(images))im.onload=()=>{if(page==='map')drawMaps();if(page==='survey')drawPaths();};
 show('intro');
 </script></body></html>
