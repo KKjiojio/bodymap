@@ -39,8 +39,14 @@
 #touchVideo{display:block;width:100%;max-height:60vh;background:#111;margin:16px auto}#noBodySensation{width:auto;margin:0 4px 0 0}.affect-item{margin:20px 0}.affect-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.affect-heading label{font-weight:600}.affect-heading output{font-size:18px;font-weight:600;min-width:2ch;text-align:center}#emotionRatings .affect-slider{display:block;width:100%;height:28px;margin:12px 0;accent-color:#253e57;padding:0;border:0;cursor:pointer}#emotionRatings .affect-slider{appearance:none;-webkit-appearance:none;background:transparent}.affect-slider::-webkit-slider-runnable-track{height:6px;background:#cbd5e1;border-radius:3px}.affect-slider::-moz-range-track{height:6px;background:#cbd5e1;border-radius:3px}.affect-slider::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin-top:-6px;border:0;border-radius:50%;background:#253e57}.affect-slider::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;background:#253e57}.affect-slider.unanswered::-webkit-slider-thumb{opacity:0}.affect-slider.unanswered::-moz-range-thumb{opacity:0}.affect-slider:focus-visible{outline:2px solid #607a99;outline-offset:4px}.affect-anchors{display:flex;justify-content:space-between;gap:12px;font-size:13px}.affect-anchors>span{flex:1;min-width:0}.affect-anchors>span:last-child{text-align:right}.affect-anchors>span:nth-child(2):not(:last-child){text-align:center}.affect-anchors .en{font-size:12px}
 #storyDone{margin-top:16px}#interfaceLanguage{font:inherit;padding:7px}
 </style></head><body><main>
-<div class="head"><div><h1>身体感覚マッピング実験 <span class="en">Bodily Sensation Mapping Study</span></h1><label>ID <input id="pid" placeholder="P01"></label></div>
+<div class="head"><div><h1>身体感覚マッピング実験 <span class="en">Bodily Sensation Mapping Study</span></h1></div>
 <div class="steps"><span id="step0">1 説明 / Instructions</span><span id="step1">2 刺激・最初の身体感覚 / Stimulus & first sensation</span><span id="step2">3 身体マップ / Body map</span><span id="step3">4 質問 / Questionnaire</span></div>
+<section class="card" id="idPage">
+<h2>参加者 ID <span class="en">Participant ID</span></h2>
+<p><label for="pid">ID <input id="pid" placeholder="P01" autocomplete="off"></label></p>
+<p>この調査は二つの部分で構成されています。Section A では音楽と物語、Section B では社会的接触の映像を扱います。音楽を含むため、ヘッドホンまたはイヤホンの使用をおすすめします。所要時間は全体で 30 分以内です。<span class="en">This study has two parts: Section A uses music and stories, and Section B uses social-touch videos. Because the study includes audio, headphones or earphones are recommended. The total study should take no more than 30 minutes.</span></p>
+<p id="idError" class="danger" role="alert"></p><div class="actions"><button class="main" id="idNext">次へ / Next</button></div>
+</section>
 <section class="card" id="introPage">
 <h2>実験の説明<span class="en">Experiment Instructions</span></h2>
 <p>本実験では、刺激を通じてご自身に生じる感情や身体感覚を調べます。このセクションで、実際に感じたことを回答してください。<span class="en">This study examines your own emotions and bodily sensations in response to stimuli. Please report your actual experience in this section.</span></p>
@@ -131,7 +137,7 @@ let page='listen',trialIndex=0,trial=null,trials=[],audioPlaying=false,audioEnde
 const now=()=>new Date().toISOString(),at=()=>Math.round((audio.currentTime||0)*1000)/1000;
 const startTrial=()=>({startedAt:now(),trial:trialIndex+1,section:trialIndex<8?'A':'B',sectionTrial:trialIndex<8?trialIndex+1:trialIndex-7,stimulus:STIMULI[trialIndex],stimulus_type:trialIndex>=8?'video':STORIES[STIMULI[trialIndex]]?'story':'music',stimulus_id:VIDEO_STIMULI.find(v=>v.src===STIMULI[trialIndex])?.id||STORIES[STIMULI[trialIndex]]?.id||STIMULI[trialIndex].split('/').pop().replace('.wav',''),emotion:trialIndex>=8?null:STORIES[STIMULI[trialIndex]]?.emotion||({A1:'Anger',H1:'Happiness',S1:'Sadness',T1:'Calm'}[STIMULI[trialIndex].split('/').pop().replace('.wav','')]),language:STORIES[STIMULI[trialIndex]]?storyLanguage:null,interfaceLanguage:'ja-en',valence:null,arousal:null,bodySensationReported:null,mapBlank:null,initialSensationReported:null,videoDurationSeconds:null,videoStartedAt:null,videoEndedAt:null,readingDurationSeconds:null,readingStartedAt:null,readingEndedAt:null,languageHistory:[],targetEmotion:STORIES[STIMULI[trialIndex]]?.target||TARGET_EMOTIONS[STIMULI[trialIndex].split('/').pop()]||null,onsetSeconds:null,initialSide:null,noSensation:null,emotionEvoked:null,emotionAnsweredAt:null,audioDurationSeconds:null,map:{front:[],back:[]},path:[],pathStep:1,pathCompletedAt:null,questionnaire:null,events:[]});
 function log(type,extra={}){trial.events.push({type,audioSeconds:isStory()||isVideo()?null:at(),timestamp:now(),...(isStory()?{stimulusSeconds:readingSeconds()}:isVideo()?{stimulusSeconds:Math.round(video.currentTime*1000)/1000}:{}),...extra});}
-function show(p){page=p;for(const k of ['intro','section','listen','map','survey','complete'])$(k+'Page').classList.toggle('hidden',k!==p);const n={intro:0,section:0,listen:1,map:2,survey:3}[p];for(let i=0;i<4;i++)$('step'+i).classList.toggle('active',i===n);if(p==='map')drawMaps();if(p==='survey')drawPaths();}
+function show(p){page=p;for(const k of ['id','intro','section','listen','map','survey','complete'])$(k+'Page').classList.toggle('hidden',k!==p);const n={id:0,intro:0,section:0,listen:1,map:2,survey:3}[p];for(let i=0;i<4;i++)$('step'+i).classList.toggle('active',i===n);if(p==='map')drawMaps();if(p==='survey')drawPaths();}
 function initialize(){
  trial=startTrial();resetAffectRatings();audioPlaying=false;audioEnded=false;painting=false;stroke=null;readingStart=null;
  if(!isStory()&&!isVideo()){audio.src=trial.stimulus;audio.load();}else{audio.pause();audio.removeAttribute('src');audio.load();}
@@ -165,6 +171,7 @@ function startReading(){
  if(readingStart!==null)return;readingStart=performance.now();trial.readingStartedAt=now();trial.language=storyLanguage;
  trial.languageHistory.push({language:trial.language,seconds:0,timestamp:now()});renderStory();$('storyText').classList.remove('hidden');$('storyDone').classList.remove('hidden');audioPlaying=true;setSideEnabled(true);log('storyStarted');
 }
+$('idNext').onclick=()=>{const id=$('pid').value.trim();if(!id){$('idError').textContent='参加者 ID を入力してください。 / Please enter your participant ID.';return;}$('idError').textContent='';show('intro');};
 $('beginBtn').onclick=()=>{storyLanguage=$('interfaceLanguage').value;assignOrder();initialize();showSection('A');};
 $('sectionStart').onclick=()=>{if(!$('sectionStart').disabled)enterStimulus();};
 $('storyLanguage').onchange=()=>{
@@ -247,6 +254,6 @@ let finalSubmissionStarted=false;function finishSectionA(){if(finalSubmissionSta
 $('export').onclick=()=>downloadResult(buildResult());
 for(const im of Object.values(images))im.onload=()=>{if(page==='map')drawMaps();if(page==='survey')drawPaths();};
 $('partialExport').onclick=()=>$('export').onclick();
-initialize();show('intro');
+initialize();show('id');
 </script></body></html>
 
