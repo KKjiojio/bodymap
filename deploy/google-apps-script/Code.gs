@@ -2,6 +2,11 @@ const RESPONSE_SHEET_NAME = 'Responses';
 const SPREADSHEET_ID = '10R2sZEqjP74xuvC-KCmJQw7vNjxi9TRlmH4CIZoWQIs';
 const BODY_MAP_IMAGES_SHEET_NAME = 'Body Map Images';
 const STEP_MAP_IMAGES_SHEET_NAME = 'Step Map Images';
+const JAPAN_TIME_ZONE = 'Asia/Tokyo';
+
+function receivedAtJst() {
+  return Utilities.formatDate(new Date(), JAPAN_TIME_ZONE, "yyyy-MM-dd HH:mm:ss.SSS 'JST'");
+}
 
 function doPost(event) {
   try {
@@ -24,8 +29,9 @@ function doPost(event) {
     const sourceUrl = String(request.sourceUrl || '');
     const submissionId = Utilities.getUuid();
 
+    sheet.getRange(1, 1).setValue('Received at (JST)');
     sheet.appendRow([
-      new Date().toISOString(),
+      receivedAtJst(),
       submissionId,
       questionnaire,
       participantId,
