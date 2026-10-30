@@ -229,5 +229,41 @@ const aggregateFinishStudy=finishStudy;finishStudy=async function(){try{await Pr
 const originalTrialSaveClick=$('surveyNext').onclick;let trialSaveBusy=false;const trialUploadBox=document.createElement('p');trialUploadBox.className='helper hidden';trialUploadBox.id='trialUploadProgress';const trialUploadMeter=document.createElement('progress');trialUploadMeter.max=100;trialUploadMeter.value=0;trialUploadMeter.style.width='180px';const trialUploadLabel=document.createElement('span');trialUploadBox.append(trialUploadMeter,' ',trialUploadLabel);$('surveyNext').before(trialUploadBox);$('surveyNext').onclick=async()=>{if(trialSaveBusy)return;const countBefore=trials.length,oldInit=initialize,oldFinish=finishStudy;initialize=()=>{};finishStudy=()=>{};try{originalTrialSaveClick();}finally{initialize=oldInit;finishStudy=oldFinish;}if(trials.length===countBefore)return;const upload=immediateTrialUploads[immediateTrialUploads.length-1];trialSaveBusy=true;$('surveyNext').disabled=true;trialUploadBox.classList.remove('hidden');trialUploadMeter.value=0;trialUploadLabel.textContent='アップロード中です。ページを切り替えずにお待ちください。';try{const started=performance.now();await upload;const wait=Math.max(0,250-(performance.now()-started));if(wait)await new Promise(resolve=>setTimeout(resolve,wait));trialUploadMeter.value=100;trialUploadLabel.textContent='保存が完了しました。次へ進みます。';if(trialIndex<order.length){oldInit();}else await oldFinish();}catch(error){trialUploadLabel.textContent='アップロードに失敗しました。現在のページで、もう一度「回答を保存して次へ」を押してください。';trialSaveBusy=false;$('surveyNext').disabled=false;return;}trialSaveBusy=false;};
 document.head.insertAdjacentHTML('beforeend','<style>#trialUploadProgress progress{display:none!important;width:0!important;height:0!important}</style>');new MutationObserver(()=>{const box=document.querySelector('#trialUploadProgress'),label=box?.querySelector('span');if(label&&box&&!box.classList.contains('hidden'))label.textContent='アップロード中です。ページを切り替えずにお待ちください。';const meter=document.querySelector('#trialUploadProgress progress');meter?.remove();}).observe(document.body,{subtree:true,childList:true,characterData:true});
 const initializeWithUploadReset=initialize;initialize=()=>{initializeWithUploadReset();if(typeof trialUploadMeter!=='undefined'){trialUploadMeter.value=0;trialUploadLabel.textContent='';trialUploadBox.classList.add('hidden');$('surveyNext').disabled=false;}};
+/* Keep Section B page-4 submission identical to Section A: one validation path,
+   one trial record, one immediate PNG upload, then one navigation action.  This
+   replaces the older nested onclick chain above, which could leave the button
+   disabled when an intermediate wrapper returned early. */
+let bPage4Busy=false;
+function submitBPage4Questionnaire(){
+  if(page!=='survey'||!trial.videoCompleted)return false;
+  const noSensation=trial.noSensation===true;
+  if(!picked('socialIntent')||['valence','arousal'].some(k=>!Number.isFinite(trial[k])||trial[k]<1||trial[k]>9)){
+    $('error').textContent='社会的意図、感情価、覚醒度を回答してください。 / Please answer social intention, valence, and arousal.';
+    return false;
+  }
+  const spatial=picked('spatial')==='yes',intensity=picked('intensity')==='yes';
+  if(!noSensation&&(!picked('spatial')||!picked('intensity'))){$('error').textContent='質問1〜2に回答してください。 / Please answer questions 1–2.';return false;}
+  if(spatial&&!picked('sideTrend')){$('error').textContent='位置の変化を一つ選択してください。 / Select one location-change option.';return false;}
+  $('error').textContent='';
+  const sideIntensity={front:picked('intensity_front'),back:picked('intensity_back')};
+  trial.completedAt=now();
+  trial.questionnaire={skipped:false,skipReason:noSensation?'noBodilySensation':null,socialIntent:picked('socialIntent'),valence:trial.valence,arousal:trial.arousal,spatialChanged:noSensation?null:picked('spatial'),initialSide:trial.initialSide||null,sideTrend:spatial?picked('sideTrend'):null,sideTrends:spatial?[picked('sideTrend')]:[],withinSideDirections:{front:[],back:[]},pathRepresentable:spatial?picked('pathPossible'):null,spatialDescription:spatial?$('spatialText').value.trim():'',intensityChanged:noSensation?null:picked('intensity'),intensityChanges:intensity?Object.entries(sideIntensity).filter(([,v])=>v).map(([s,v])=>s+'_'+v):[],intensityBySide:intensity?sideIntensity:{front:null,back:null},intensityOtherDescription:''};
+  if(!spatial||picked('pathPossible')!=='yes'){trial.path=[];trial.pathStep=1;trial.pathCompletedAt=null;}
+  log('questionnaireSaved');
+  trials.push(structuredClone(trial));
+  trialIndex++;
+  return true;
+}
+const bPage4Initialize=initialize,bPage4Finish=finishStudy;
+$('surveyNext').onclick=async()=>{
+  if(bPage4Busy)return;
+  const before=trials.length;
+  if(!submitBPage4Questionnaire()||trials.length===before)return;
+  bPage4Busy=true;$('surveyNext').disabled=true;trialUploadBox.classList.remove('hidden');trialUploadMeter.value=0;trialUploadLabel.textContent='アップロード中です。ページを切り替えずにお待ちください。';
+  const upload=immediateTrialUploads[immediateTrialUploads.length-1];
+  try{await upload;trialUploadMeter.value=100;trialUploadLabel.textContent='保存が完了しました。次へ進みます。';if(trialIndex<order.length)bPage4Initialize();else await bPage4Finish();}
+  catch(error){console.error(error);trials.pop();trialIndex--;immediateTrialUploads.pop();trialUploadLabel.textContent='アップロードに失敗しました。現在のページで、もう一度「回答を保存して次へ」を押してください。';trialSaveBusy=false;$('surveyNext').disabled=false;return;}
+  bPage4Busy=false;
+};
 show('intro');
 </script></body></html>
