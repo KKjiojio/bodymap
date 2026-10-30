@@ -142,6 +142,7 @@ for(const k of ['spatial','intensity'])document.querySelectorAll(`input[name=${k
 for(const key of ['valence','arousal'])$(key).step='0.1';
 document.querySelectorAll('input[name=pathPossible]').forEach(el=>el.addEventListener('change',()=>{$('pathEditor').classList.toggle('hidden',picked('pathPossible')!=='yes');if(picked('pathPossible')==='yes')drawPaths();}));
 $('surveyPage').addEventListener('change',event=>{if(event.target?.name!=='pathPossible')return;const enabled=picked('pathPossible')==='yes';$('pathEditor').classList.toggle('hidden',!enabled);if(enabled)drawPaths();});
+document.querySelectorAll('input[name=pathPossible]').forEach(el=>{el.onchange=()=>{$('pathEditor').classList.toggle('hidden',el.value!=='yes');if(el.value==='yes')drawPaths();};});
 const submitSectionBWithContinuousAffect=$('surveyNext').onclick;$('surveyNext').onclick=()=>{const integerCheck=Number.isInteger;Number.isInteger=value=>integerCheck(value)||(typeof value==='number'&&Number.isFinite(value));try{submitSectionBWithContinuousAffect();}finally{Number.isInteger=integerCheck;}};
 function drawPaths(){
   $('pathDone').disabled=trial.path.length===0;
