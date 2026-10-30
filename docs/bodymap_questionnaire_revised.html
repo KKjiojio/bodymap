@@ -341,6 +341,7 @@ finishSectionA=async function(){if(sectionAQueueStarted)return;sectionAQueueStar
 /* Test-only fast path.  Open the questionnaire with ?test=1, then press E on any
    page to advance using explicitly marked no-sensation test data.  It is disabled
    for normal participant links and never replaces the ordinary validation flow. */
+const initializeWithUploadReset=initialize;initialize=()=>{initializeWithUploadReset();if(typeof trialUploadMeter!=='undefined'){trialUploadMeter.value=0;trialUploadLabel.textContent='';trialUploadBox.classList.add('hidden');$('surveyNext').disabled=false;}};
 initialize();show('id');
 </script></body></html>
 
