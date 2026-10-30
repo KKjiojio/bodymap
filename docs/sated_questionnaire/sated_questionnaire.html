@@ -139,7 +139,7 @@ const intensityOptions=[['frontIncrease','前側が強くなった / Front incre
 function addChecks(id,options){$(id).innerHTML=options.map(([v,t])=>`<label class="check"><input type="checkbox" value="${v}"> ${t}</label>`).join('');}
 $('sideTrendChoices').innerHTML=sideTrendOptions.map(([v,t])=>`<label class="radio"><input type="radio" name="sideTrend" value="${v}"> ${t}</label>`).join('');addChecks('frontDirectionChoices',directionOptions);addChecks('backDirectionChoices',directionOptions);addChecks('intensityChoices',intensityOptions);
 for(const k of ['spatial','intensity'])document.querySelectorAll(`input[name=${k}]`).forEach(x=>x.onchange=()=>{const selected=picked(k);$(k+'Detail').classList.toggle('hidden',selected!=='yes');if(k==='spatial'&&selected==='yes')drawPaths();});
-for(const key of ['valence','arousal'])$(key).step='0.1';
+for(const key of ['valence','arousal']){const slider=$(key);if(slider)slider.step='0.1';}
 document.querySelectorAll('input[name=pathPossible]').forEach(el=>el.addEventListener('change',()=>{$('pathEditor').classList.toggle('hidden',picked('pathPossible')!=='yes');if(picked('pathPossible')==='yes')drawPaths();}));
 $('surveyPage').addEventListener('change',event=>{if(event.target?.name!=='pathPossible')return;const enabled=picked('pathPossible')==='yes';$('pathEditor').classList.toggle('hidden',!enabled);if(enabled)drawPaths();});
 document.querySelectorAll('input[name=pathPossible]').forEach(el=>{el.onchange=()=>{$('pathEditor').classList.toggle('hidden',el.value!=='yes');if(el.value==='yes')drawPaths();};});
