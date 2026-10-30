@@ -341,7 +341,7 @@ finishSectionA=async function(){if(sectionAQueueStarted)return;sectionAQueueStar
 /* Test-only fast path.  Open the questionnaire with ?test=1, then press E on any
    page to advance using explicitly marked no-sensation test data.  It is disabled
    for normal participant links and never replaces the ordinary validation flow. */
-document.head.insertAdjacentHTML('beforeend','<style>#trialUploadProgress progress{display:none}</style>');new MutationObserver(()=>{const label=document.querySelector('#trialUploadProgress span');if(label&&label.textContent.includes('当前试次正在保存'))label.textContent='上传中，请等待，不要切换页面。 / Uploading, please wait. Do not leave this page.';}).observe(document.body,{subtree:true,childList:true,characterData:true});
+document.head.insertAdjacentHTML('beforeend','<style>#trialUploadProgress progress{display:none!important;width:0!important;height:0!important}</style>');new MutationObserver(()=>{const label=document.querySelector('#trialUploadProgress span');if(label&&(/当前试次正在保存|Saving this trial|Uploading/.test(label.textContent)))label.textContent='アップロード中です。ページを切り替えずにお待ちください。';const meter=document.querySelector('#trialUploadProgress progress');meter?.remove();}).observe(document.body,{subtree:true,childList:true,characterData:true});
 const initializeWithUploadReset=initialize;initialize=()=>{initializeWithUploadReset();if(typeof trialUploadMeter!=='undefined'){trialUploadMeter.value=0;trialUploadLabel.textContent='';trialUploadBox.classList.add('hidden');$('surveyNext').disabled=false;}};
 initialize();show('id');
 </script></body></html>
