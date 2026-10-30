@@ -65,6 +65,7 @@ function initialize(){
  trial={trial:trialIndex+1,section:'B',stimulus_type:'video',stimulus_id:stimulus.id,videoNumber:stimulus.id,filename:stimulus.filename,originalFilename:stimulus.originalFilename,stimulus:stimulus.src,language:interfaceLanguage,startedAt:now(),videoStartedAt:null,videoEndedAt:null,videoDurationSeconds:null,videoCompleted:false,videoPlayedRanges:[],repetitionsPlanned:REPEAT_COUNT,repetitionsCompleted:0,repetitions:[],totalPlayedSeconds:0,initialSide:null,initialSensationReported:null,onsetSeconds:null,onsetVideoSeconds:null,onsetRepetition:null,onsetAt:null,onsetElapsedSeconds:null,initialSideAnsweredAt:null,initialSideSelectionPhase:null,bodySensationReported:null,noSensation:null,mapBlank:null,map:{front:[],back:[]},path:[],pathStep:1,pathCompletedAt:null,questionnaire:null,events:[]};
  painting=false;stroke=null;repeatRunning=false;repetitionStartedAt=null;playbackStartClock=null;video.pause();video.src=stimulus.src;video.playbackRate=1;video.loop=false;video.load();
  document.querySelectorAll('input[type=radio],input[type=checkbox]').forEach(el=>el.checked=false);
+ $('noBodySensation').checked=false;
  $('color').value=3;$('brush').value=22;$('colorLevel').textContent=' +3';$('spatialText').value='';
  for(const id of ['spatialDetail','pathEditor','intensityDetail','pathCompleted','videoError'])$(id).classList.add('hidden');$('pathWorkspace').classList.remove('hidden');
  for(const id of ['error','mapError','videoError','videoStatus'])$(id).textContent='';
