@@ -259,7 +259,7 @@ $('surveyNext').onclick=async()=>{
   if(bPage4Busy)return;
   const before=trials.length;
   if(!submitBPage4Questionnaire()||trials.length===before)return;
-  bPage4Busy=true;$('surveyNext').disabled=true;trialUploadBox.classList.remove('hidden');trialUploadMeter.value=0;trialUploadLabel.textContent='アップロード中です。ページを切り替えずにお待ちください。';
+bPage4Busy=true;$('surveyNext').disabled=true;trialUploadBox.classList.remove('hidden');trialUploadBox.style.display='block';trialUploadMeter.value=0;trialUploadLabel.textContent='アップロード中です。ページを切り替えずにお待ちください。';
   const upload=immediateTrialUploads[immediateTrialUploads.length-1];
   try{await upload;trialUploadMeter.value=100;trialUploadLabel.textContent='保存が完了しました。次へ進みます。';if(trialIndex<order.length)bPage4Initialize();else await bPage4Finish();}
   catch(error){console.error(error);trials.pop();trialIndex--;immediateTrialUploads.pop();trialUploadLabel.textContent='アップロードに失敗しました。現在のページで、もう一度「回答を保存して次へ」を押してください。';trialSaveBusy=false;$('surveyNext').disabled=false;return;}
