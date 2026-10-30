@@ -47,7 +47,7 @@
 const STIMULI=[5,6,28,36,20].map(id=>({id,originalFilename:`${id}.avi`,filename:`${id}.mp4`,src:`stimuli/${id}.mp4`}));
 const REPEAT_COUNT=5;
 // Apps Script Web App /exec URL. Filled in immediately before publication; it is intentionally public.
-const RESPONSE_ENDPOINT='https://script.google.com/macros/s/AKfycbwg8TrdQaHVcgUHQqYRvC7hpANGAgoL1PEHgPckttxDrbjzEtQBza9I7KtQIwDe4pwDtw/exec';
+const RESPONSE_ENDPOINT='https://script.google.com/macros/s/AKfycby-EAvheABbs-w5eq4vYhpz3KG6OKbhVOkHUiRyZMgis9Lo3fy6h5Ut4JLJFcuWjItOIQ/exec';
 const $=id=>document.getElementById(id),video=$('touchVideo');
 const images={front:new Image(),back:new Image()};images.front.src='front.jpg';images.back.src='back.jpg';
 const linkedParticipantId=new URLSearchParams(location.search).get('participantId')||'';
