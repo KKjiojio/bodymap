@@ -334,6 +334,7 @@ finishSectionA=async function(){if(sectionAQueueStarted)return;sectionAQueueStar
    for normal participant links and never replaces the ordinary validation flow. */
 function testSetRange(id,value){const el=$(id);if(!el)return;el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));}
 document.addEventListener('keydown',event=>{if(!TEST_MODE||event.key.toLowerCase()!=='e'||event.altKey||event.ctrlKey||event.metaKey)return;event.preventDefault();if(page==='id'){if(!$('pid').value||$('pid').value.length<2)$('pid').value='E_SKIP_'+Date.now();$('idNext').click();return;}if(page==='intro'){$('beginBtn').click();return;}if(page==='section'){$('sectionStart').click();return;}if(page==='listen'){$('stimulusInstructionModal')?.classList.add('hidden');trial.initialSide='none';trial.initialSensationReported=false;trial.noSensation=true;trial.videoCompleted=true;openMap();return;}if(page==='map'){$('noBodySensation').checked=true;$('mapNext').click();return;}if(page==='survey'){testSetRange('valence',5);testSetRange('arousal',5);$('surveyNext').click();}});
+if(TEST_MODE){const testSkipButton=document.createElement('button');testSkipButton.textContent='测试跳过（E） / Test skip (E)';testSkipButton.style.cssText='position:fixed;right:12px;bottom:12px;z-index:99;background:#8b2d2d;color:#fff;border:0;border-radius:8px;padding:9px 12px';testSkipButton.onclick=()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'e'}));document.body.append(testSkipButton);}
 initialize();show('id');
 </script></body></html>
 
