@@ -42,7 +42,7 @@
 
 <p class="danger" id="error"></p><div class="actions"><button class="main" id="surveyNext">回答を保存して次へ / Save and continue</button></div></section>
 <section class="card hidden" id="completePage"><h2>実験が終了しました <span class="en">Study complete</span></h2><p>ご協力ありがとうございました。回答は研究用データベースに送信されます。<span class="en">Thank you. Your response will be sent to the study database.</span></p><p class="helper" id="submissionStatus" role="status">送信を準備しています。<span class="en">Preparing your submission.</span></p></section>
-</main><script>
+</main><script src="../local-backup.js"></script><script>
 'use strict';
 const STIMULI=[5,6,28,36,30].map(id=>({id,originalFilename:`${id}.avi`,filename:`${id}.mp4`,src:`stimuli/${id}.mp4`}));
 const REPEAT_COUNT=5;
@@ -265,9 +265,10 @@ bPage4Busy=true;$('surveyNext').disabled=true;trialUploadBox.classList.remove('h
   catch(error){console.error(error);trials.pop();trialIndex--;immediateTrialUploads.pop();trialUploadLabel.textContent='アップロードに失敗しました。現在のページで、もう一度「回答を保存して次へ」を押してください。';trialSaveBusy=false;$('surveyNext').disabled=false;return;}
   bPage4Busy=false;
 };
-const blockingFinishStudy=finishStudy;finishStudy=async function(){if(finalSubmissionStarted)return;finalSubmissionStarted=true;const result=buildResult(),status=$('submissionStatus');show('complete');try{status.textContent='回答を保存しています… / Saving your response…';await postConfirmedUpload({questionnaire:result.study,sourceUrl:location.href,payload:result});status.textContent='回答を保存しました。 / Your response was saved.';}catch(error){console.error(error);status.textContent='アップロードに失敗しました。もう一度お試しください。 / Upload failed. Please retry.';finalSubmissionStarted=false;}};
+finishStudy=async function(){if(finalSubmissionStarted)return;finalSubmissionStarted=true;const result=buildResult(),status=$('submissionStatus');show('complete');try{status.textContent=interfaceLanguage==='en'?'Saving responses…':'回答を保存しています…';await postConfirmedUpload({questionnaire:result.study,sourceUrl:location.href,payload:result});status.textContent=interfaceLanguage==='en'?'Your responses were saved. You may download a backup.':'回答を保存しました。必要に応じてバックアップを保存できます。';const backup=document.createElement('button');backup.type='button';backup.textContent=interfaceLanguage==='en'?'Download backup (optional)':'バックアップを保存（任意）';backup.onclick=()=>downloadSectionBackup('B',result.participantId,result,sectionBBackupImages);status.after(backup);}catch(error){console.error(error);status.textContent=interfaceLanguage==='en'?'Upload failed. Please retry.':'アップロードに失敗しました。もう一度お試しください。';finalSubmissionStarted=false;}};
 // Final single-path Section B save handler. It bypasses the older nested save wrappers.
 let cleanBPage4Busy=false;
+const sectionBBackupImages=[];
 const cleanBOriginalPop=trials.pop.bind(trials);
 async function saveBCurrentTrialAndAdvance(){
   if(cleanBPage4Busy)return;
@@ -279,7 +280,7 @@ async function saveBCurrentTrialAndAdvance(){
   trial.questionnaire={skipped:false,skipReason:noSensation?'noBodilySensation':null,socialIntent:picked('socialIntent'),valence:trial.valence,arousal:trial.arousal,spatialChanged:noSensation?null:picked('spatial'),initialSide:trial.initialSide||null,sideTrend:spatial?picked('sideTrend'):null,sideTrends:spatial?[picked('sideTrend')]:[],withinSideDirections:{front:[],back:[]},pathRepresentable:spatial?picked('pathPossible'):null,spatialDescription:spatial?$('spatialText').value.trim():'',intensityChanged:noSensation?null:picked('intensity'),intensityChanges:intensity?Object.entries(sideIntensity).filter(([,v])=>v).map(([s,v])=>s+'_'+v):[],intensityBySide:intensity?sideIntensity:{front:null,back:null},intensityOtherDescription:''};
   if(!spatial||picked('pathPossible')!=='yes'){trial.path=[];trial.pathStep=1;trial.pathCompletedAt=null;}
   trial.clientSubmissionId ||= (crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36).slice(2)); const saved=structuredClone(trial); originalTrialsPush(saved); trialIndex++; cleanBPage4Busy=true; $('surveyNext').disabled=true; trialUploadBox.classList.remove('hidden'); trialUploadBox.style.display='block'; trialUploadLabel.textContent='アップロード中です。ページを切り替えずにお待ちください。';
-  try{const image={trial:saved.trial,stimulus:saved.stimulus,bodyMapPng:renderTrialImage(saved,false),stepMapPng:saved.path&&saved.path.length?renderTrialImage(saved,true):null};const payload={participantId,study:'Bodily Sensation Mapping — Section B — Trial '+saved.trial,schemaVersion:2,trialNumber:saved.trial,section:'B',clientSubmissionId:saved.clientSubmissionId,trial:saved,renderedImages:[image]};await postConfirmedUpload({questionnaire:payload.study,sourceUrl:location.href,payload});trialUploadLabel.textContent='保存が完了しました。次へ進みます。';if(trialIndex<order.length){bPage4Initialize();}else await finishStudy();}
+  try{const image={trial:saved.trial,stimulus:saved.stimulus,bodyMapPng:renderTrialImage(saved,false),stepMapPng:saved.path&&saved.path.length?renderTrialImage(saved,true):null};sectionBBackupImages[saved.trial-1]=image;const payload={participantId,study:'Bodily Sensation Mapping — Section B — Trial '+saved.trial,schemaVersion:2,trialNumber:saved.trial,section:'B',clientSubmissionId:saved.clientSubmissionId,trial:saved,renderedImages:[image]};await postConfirmedUpload({questionnaire:payload.study,sourceUrl:location.href,payload});trialUploadLabel.textContent='保存が完了しました。次へ進みます。';if(trialIndex<order.length){bPage4Initialize();}else await finishStudy();}
   catch(error){console.error(error);cleanBOriginalPop();trialIndex--;trialUploadLabel.textContent='アップロードに失敗しました。もう一度「回答を保存して次へ」を押してください。';$('surveyNext').disabled=false;cleanBPage4Busy=false;return;}
   cleanBPage4Busy=false;
 }
