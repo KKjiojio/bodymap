@@ -354,7 +354,7 @@ function buildAndRecordACurrentTrial(){
   trial.emotionAnsweredAt=now();
   trial.questionnaire={skipped:false,skipReason:noSensation?'noBodilySensation':null,valence:trial.valence,arousal:trial.arousal,emotionEvoked:trial.emotionEvoked,spatialChanged:noSensation?null:picked('spatial'),initialSide:trial.initialSide||null,sideTrend:spatial?picked('sideTrend'):null,sideTrends:spatial?[picked('sideTrend')]:[],withinSideDirections:spatial?{front:checks('frontDirectionChoices'),back:checks('backDirectionChoices')}:{front:[],back:[]},pathRepresentable:spatial?picked('pathPossible'):null,spatialDescription:spatial?$('spatialText').value.trim():'',intensityChanged:noSensation?null:picked('intensity'),intensityChanges:intensity?checks('intensityChoices'):[],intensityOtherDescription:''};
   if(!spatial||picked('pathPossible')!=='yes'){trial.path=[];trial.pathStep=1;trial.pathCompletedAt=null;}
-  const saved=structuredClone(trial); originalTrialsPush(saved); trialIndex++; return saved;
+  trial.clientSubmissionId ||= (crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36).slice(2)); const saved=structuredClone(trial); originalTrialsPush(saved); trialIndex++; return saved;
 }
 async function saveACurrentTrialAndAdvance(){
   if(cleanAPage4Busy)return;
@@ -362,7 +362,7 @@ async function saveACurrentTrialAndAdvance(){
   cleanAPage4Busy=true; $('surveyNext').disabled=true; trialUploadBox.classList.remove('hidden'); trialUploadBox.style.display='block'; trialUploadLabel.textContent='アップロード中です。ページを切り替えずにお待ちください。';
   try{
     const image={trial:saved.trial,stimulus:saved.stimulus,bodyMapPng:renderTrialImage(saved,false),stepMapPng:saved.path&&saved.path.length?renderTrialImage(saved,true):null};
-    const payload={participantId:$('pid').value.trim()||'anonymous',study:'Bodily Sensation Mapping — Section A — Trial '+saved.trial,schemaVersion:8,trialNumber:saved.trial,section:'A',trial:saved,renderedImages:[image]};
+    const payload={participantId:$('pid').value.trim()||'anonymous',study:'Bodily Sensation Mapping — Section A — Trial '+saved.trial,schemaVersion:8,trialNumber:saved.trial,section:'A',clientSubmissionId:saved.clientSubmissionId,trial:saved,renderedImages:[image]};
     await postConfirmedUpload({questionnaire:payload.study,sourceUrl:location.href,payload});
     trialUploadLabel.textContent='保存が完了しました。次へ進みます。';
     if(trialIndex<STIMULI.length){initialize();enterStimulus();}else await finishSectionA();

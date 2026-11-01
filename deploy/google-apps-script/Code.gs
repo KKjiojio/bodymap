@@ -9,6 +9,8 @@ function receivedAtJst() {
 }
 
 function doPost(event) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(60000)) return jsonResponse({ ok: false, error: 'Server busy. Please retry.' });
   try {
     const request = JSON.parse(event.postData.contents || '{}');
     if (request.kind === 'images') {
@@ -35,10 +37,11 @@ function doPost(event) {
     const questionnaire = String(request.questionnaire || payload.study || 'unknown');
     const schemaVersion = payload.schemaVersion == null ? '' : String(payload.schemaVersion);
     const sourceUrl = String(request.sourceUrl || '');
-    const submissionId = Utilities.getUuid();
+    const submissionId = String(payload.clientSubmissionId || Utilities.getUuid());
 
     sheet.getRange(1, 1).setValue('Received at (JST)');
-    sheet.appendRow([
+    const existing = sheet.getLastRow() > 1 && sheet.getRange(2, 2, sheet.getLastRow() - 1, 1).createTextFinder(submissionId).matchEntireCell(true).findNext();
+    if (!existing) sheet.appendRow([
       receivedAtJst(),
       submissionId,
       questionnaire,
@@ -51,6 +54,8 @@ function doPost(event) {
     return jsonResponse({ ok: true, submissionId: submissionId });
   } catch (error) {
     return jsonResponse({ ok: false, error: 'Invalid request.' }, 400);
+  } finally {
+    try { SpreadsheetApp.flush(); } finally { lock.releaseLock(); }
   }
 }
 
@@ -78,12 +83,21 @@ function appendImage(sheetName, participantId, submissionId, trial, stimulus, im
     sheet.getRange(1, 1, 1, 6).setValues([['Participant ID', 'Submission ID', 'Trial', 'Stimulus', 'Image type', 'Image']]);
     sheet.setFrozenRows(1);
   }
-  const row = sheet.getLastRow() + 1;
-  sheet.getRange(row, 1, 1, 5).setValues([[participantId, submissionId, trial, stimulus, imageType]]);
+  const match = sheet.getLastRow() > 1 && sheet.getRange(2, 2, sheet.getLastRow() - 1, 1).createTextFinder(submissionId).matchEntireCell(true).findNext();
+  const row = match ? match.getRow() : sheet.getLastRow() + 1;
+  if (!match) {
+    sheet.getRange(row, 1, 1, 5).setValues([[participantId, submissionId, trial, stimulus, imageType]]);
+    SpreadsheetApp.flush();
+  }
+  if (sheet.getImages().some(image => image.getAnchorCell().getRow() === row && image.getAnchorCell().getColumn() === 6)) {
+    properties.setProperty(imageKey, 'saved');
+    return;
+  }
   const blob = Utilities.newBlob(Utilities.base64Decode(dataUrl.substring(dataUrl.indexOf(',') + 1)), 'image/png', participantId + '_' + trial + '_' + imageType.split(' ').join('_') + '.png');
   const image = sheet.insertImage(blob, 6, row);
   image.setWidth(540).setHeight(385);
   sheet.setRowHeight(row, 395);
+  SpreadsheetApp.flush();
   properties.setProperty(imageKey, 'saved');
 }
 
